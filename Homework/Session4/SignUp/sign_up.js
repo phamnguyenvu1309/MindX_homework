@@ -1,4 +1,9 @@
 import user_input from "../Common/input.js";
+import LoginUser from "../Login/index.js";
+import app from "../app.js";
+import CheckEmailScreen from "../CheckEmail/index.js";
+import { createNewAccout } from "../firebase/auth.js";
+
 class Register {
   $container;
   $title;
@@ -17,6 +22,7 @@ class Register {
     this.$container.classList.add("containerForm");
 
     this.$title = document.createElement("p");
+    this.$title.classList.add("p__title");
     this.$title.innerHTML = "Sign Up";
 
     this.$formRegister = document.createElement("form");
@@ -37,14 +43,13 @@ class Register {
 
     this.$link = document.createElement("a");
     this.$link.innerHTML = "Login";
-    this.$link.target = "_blank";
-    this.$link.setAttribute("href", "../Login/login.html");
+    this.$link.addEventListener("click", this.handleChangeScreen);
 
     this.$span = document.createElement("span");
     this.$span.innerHTML = "Already a member? ";
   }
-  handleSubmit = (e) => {
-    e.preventDefault();
+  handleSubmit = async (evt) => {
+    evt.preventDefault();
 
     //lay giá trị nhập từ Input vào
     const username = this.$userName.getInputValue();
@@ -53,42 +58,59 @@ class Register {
     const confimPass = this.$confimPassword.getInputValue();
 
     //Khai báo error cho từng Input đầu vào
-    this.$userName.setErrorMsg(null);
-    this.$email.setErrorMsg(null);
-    this.$password.setErrorMsg(null);
-    this.$confimPassword.setErrorMsg(null);
+    this.$userName.seterror_message(null);
+    this.$email.seterror_message(null);
+    this.$password.seterror_message(null);
+    this.$confimPassword.seterror_message(null);
 
     var checkEmail =
       /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
     var checkUserName = /^[a-zA-Z!@#\$%\^\&*\)\(+=._-]{2,}$/g;
 
     if (!username) {
-      this.$userName.setErrorMsg("Username is required");
+      this.$userName.seterror_message("Tên đăng nhập không được để trống!");
       return;
     }
     if (!checkUserName.test(username)) {
-      this.$userName.setErrorMsg("Username is invalid");
+      this.$userName.seterror_message("Tên đăng nhập không hợp lệ");
       return;
     }
 
     if (!email) {
-      this.$email.setErrorMsg("Email is required");
+      this.$email.seterror_message("Email không được để trống!");
       return;
     }
     if (!checkEmail.test(email)) {
-      this.$email.setErrorMsg("Email is invalid");
+      this.$email.seterror_message("Hãy nhập email hợp lệ.\nExample@gmail.com");
       return;
     }
-    if (pass.length < 8 || pass.length > 16) {
-      this.$password.setErrorMsg(
-        "Password must be between 8 and 16 characters"
+    if (pass.length < 6 || pass.length == 0) {
+      this.$password.seterror_message(
+        "Mật khẩu không hợp lệ, phải lớn hơn 6 kí tự!"
       );
       return;
     }
     if (pass != confimPass) {
-      this.$confimPassword.setErrorMsg("ConfimPassword is invalid");
+      this.$confimPassword.seterror_message("Mật khẩu chưa khớp");
       return;
     }
+    alert("Đăng kí thành công!!!!");
+    await createNewAccout(email, pass);
+    const checkemail = new CheckEmailScreen();
+    app.changeActiveScreen(checkemail, "Check Email");
+    this.clearForm();
+  };
+
+  handleChangeScreen = (e) => {
+    e.preventDefault();
+    const login = new LoginUser();
+    app.changeActiveScreen(login, "Login");
+  };
+  clearForm = () => {
+    this.$userName.clearInputValue(null);
+    this.$email.clearInputValue(null);
+    this.$password.clearInputValue(null);
+    this.$confimPassword.clearInputValue(null);
   };
   Render() {
     this.$formRegister.append(
